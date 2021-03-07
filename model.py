@@ -7,6 +7,8 @@ import pytorch_lightning as pl
 import pickle
 import os
 
+from losses import MSSLoss
+
 
 class CausalConv1d(torch.nn.Conv1d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
@@ -117,6 +119,7 @@ class PedalNet(pl.LightningModule):
         )
         self.hparams = hparams
 
+
     def prepare_data(self):
         ds = lambda x, y: TensorDataset(torch.from_numpy(x), torch.from_numpy(y))
         data = pickle.load(open(os.path.dirname(self.hparams.model) + "/data.pickle", "rb"))
@@ -143,14 +146,18 @@ class PedalNet(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_pred = self.forward(x)
-        loss = error_to_signal(y[:, :, -y_pred.size(2) :], y_pred).mean()
+        mssloss = MSSLoss([2048, 1024, 512, 256], alpha=1.0, overlap=0.75)
+        #loss = error_to_signal(y[:, :, -y_pred.size(2) :], y_pred).mean()
+        loss = mssloss(y[:, :, -y_pred.size(2):], y_pred)
         logs = {"loss": loss}
         return {"loss": loss, "log": logs}
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_pred = self.forward(x)
-        loss = error_to_signal(y[:, :, -y_pred.size(2) :], y_pred).mean()
+        mssloss = MSSLoss([2048, 1024, 512, 256], alpha=1.0, overlap=0.75)
+        # loss = error_to_signal(y[:, :, -y_pred.size(2) :], y_pred).mean()
+        loss=mssloss(y[:, :, -y_pred.size(2) :], y_pred)
         return {"val_loss": loss}
 
     def validation_epoch_end(self, outs):

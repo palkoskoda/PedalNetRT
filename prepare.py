@@ -31,7 +31,8 @@ def prepare(args):
         os.makedirs(os.path.dirname(args.model))
 
     pickle.dump(d, open(os.path.dirname(args.model) + "/data.pickle", "wb"))
-
+    print(in_rate)
+    print(in_data.size)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

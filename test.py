@@ -36,6 +36,6 @@ def test(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="models/pedalnet/pedalnet.ckpt")
+    parser.add_argument("--model", default="models/pedalnet/epoch=38-step=4952.ckpt")
     args = parser.parse_args()
     test(args)
